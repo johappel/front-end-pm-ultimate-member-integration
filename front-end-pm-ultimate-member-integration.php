@@ -16,6 +16,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 register_activation_hook(__FILE__ , 'fep_um_plugin_activate' );
 
+
+
 function fep_um_plugin_activate(){
 		if( function_exists( 'um_get_option' )
 		&& function_exists( 'fep_update_option' )
@@ -29,6 +31,7 @@ class Front_End_Pm_UM_Integration {
 	private static $instance;
 
 	private function __construct() {
+
 		if( ! function_exists( 'fep_get_option' ) || ! function_exists( 'um_profile_id' ) ) {
 			// Display notices to admins
 			add_action( 'admin_notices', array( $this, 'notices' ) );
@@ -61,15 +64,29 @@ class Front_End_Pm_UM_Integration {
 
 	private function actions()
     	{
-				if( is_user_logged_in() ){
-					add_action('um_profile_content_fep-um_default', array( $this, 'content' ) );
 
-					//Account page
-					add_action('um_account_tab__fep-um', array( $this, 'account_tab_hook' ) );
+            /**
+             * Add hidden field with opened um profile tab to fep form
+             */
+            add_action('wp_footer', function (){
+                ?>
+                <script id="fep-integration">
+                    jQuery(document).ready(function(){
+                        jQuery('#fep-content form').each(function() {
+                            val = location.search.match(/profiletab=([^&]+)/);
+                            jQuery(this).append('<input type="hidden" name="profiletab" value="'+val[1]+'">');
+                        });
+                    });
 
-				}
+                </script>
+                <?php
+            } );
 
-
+            if( is_user_logged_in() ){
+				add_action('um_profile_content_fep-um_default', array( $this, 'content' ) );
+				//Account page
+				add_action('um_account_tab__fep-um', array( $this, 'account_tab_hook' ) );
+			}
         }
 
 
